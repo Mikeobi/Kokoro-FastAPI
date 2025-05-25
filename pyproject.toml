@@ -83,21 +83,14 @@ url = "https://download.pytorch.org/whl/cu124"
 explicit = true
 
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]  # Added wheel here
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# Updated to be more explicit about package structure
+# Simplified package configuration
 package-dir = {"kokoro-fastapi" = "api/src"}
 packages = ["kokoro-fastapi"]
 include-package-data = true
-zip-safe = false
-
-# Added explicit package discovery as fallback
-[tool.setuptools.packages.find]
-where = ["api/src"]
-include = ["kokoro-fastapi*"]
-exclude = ["tests*", "tests.*"]
 
 [tool.pytest.ini_options]
 testpaths = ["api/tests", "ui/tests"]
