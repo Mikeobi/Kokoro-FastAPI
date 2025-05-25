@@ -1,5 +1,3 @@
-FROM python:3.10-slim 
-
 # Install dependencies and check espeak location
 RUN apt-get update && apt-get install -y \
     espeak-ng \
@@ -27,23 +25,20 @@ RUN useradd -m -u 1000 appuser && \
 USER appuser
 WORKDIR /app
 
-# 🛠️ Copy source code first to satisfy setuptools during build
-COPY --chown=appuser:appuser api ./api
-
-# ✅ Then copy dependency and metadata files
+# Copy dependency files
 COPY --chown=appuser:appuser pyproject.toml ./pyproject.toml
-COPY --chown=appuser:appuser README.md ./README.md
 
 # Install Rust (required to build sudachipy and pyopenjtalk-plus)
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/home/appuser/.cargo/bin:$PATH"
 
-# Install dependencies (must come after source is present)
+# Install dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv venv --python 3.10 && \
     uv sync --extra cpu
 
-# Copy remaining project files
+# Copy project files including models
+COPY --chown=appuser:appuser api ./api
 COPY --chown=appuser:appuser web ./web
 COPY --chown=appuser:appuser docker/scripts/ ./
 RUN chmod +x ./entrypoint.sh
@@ -59,13 +54,11 @@ ENV PYTHONUNBUFFERED=1 \
     ESPEAK_DATA_PATH=/usr/share/espeak-ng-data
 
 ENV DOWNLOAD_MODEL=true
-
 # Download model if enabled
 RUN if [ "$DOWNLOAD_MODEL" = "true" ]; then \
     python download_model.py --output api/src/models/v1_0; \
     fi
 
 ENV DEVICE="cpu"
-
 # Run FastAPI server through entrypoint.sh
 CMD ["./entrypoint.sh"]
