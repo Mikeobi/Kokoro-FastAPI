@@ -1,6 +1,11 @@
 FROM python:3.10-slim
 
 # Install system dependencies and dev tools needed for building Python packages
+WORKDIR /app
+
+COPY --chown=appuser:appuser pyproject.toml ./pyproject.toml
+COPY --chown=appuser:appuser README.md ./README.md
+COPY --chown=appuser:appuser api ./api
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
