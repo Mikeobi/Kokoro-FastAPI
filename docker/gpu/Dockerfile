@@ -1,11 +1,7 @@
-FROM python:3.10-slim
+FROM python:3.10-slim 
 
-# Install system dependencies and dev tools needed for building Python packages
+# Install dependencies and check espeak location
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
-    libffi-dev \
-    libssl-dev \
     espeak-ng \
     espeak-ng-data \
     git \
@@ -31,19 +27,21 @@ RUN useradd -m -u 1000 appuser && \
 USER appuser
 WORKDIR /app
 
-# Copy dependency files
+# Copy dependency and project files early so install works
 COPY --chown=appuser:appuser pyproject.toml ./pyproject.toml
+COPY --chown=appuser:appuser README.md ./README.md
+COPY --chown=appuser:appuser api ./api
 
-# Install Rust (required to build some Python packages)
+# Install Rust (required to build sudachipy and pyopenjtalk-plus)
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/home/appuser/.cargo/bin:$PATH"
 
-# Install dependencies (split commands for better debugging and caching)
-RUN --mount=type=cache,target=/root/.cache/uv uv venv --python 3.10
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --extra cpu --verbose
+# Install dependencies (must come after source is present)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv venv --python 3.10 && \
+    uv sync --extra cpu
 
-# Copy project files including models
-COPY --chown=appuser:appuser api ./api
+# Copy remaining project files
 COPY --chown=appuser:appuser web ./web
 COPY --chown=appuser:appuser docker/scripts/ ./
 RUN chmod +x ./entrypoint.sh
