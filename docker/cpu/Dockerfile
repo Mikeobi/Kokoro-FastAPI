@@ -27,10 +27,12 @@ RUN useradd -m -u 1000 appuser && \
 USER appuser
 WORKDIR /app
 
-# Copy dependency and project files early so install works
+# 🛠️ Copy source code first to satisfy setuptools during build
+COPY --chown=appuser:appuser api ./api
+
+# ✅ Then copy dependency and metadata files
 COPY --chown=appuser:appuser pyproject.toml ./pyproject.toml
 COPY --chown=appuser:appuser README.md ./README.md
-COPY --chown=appuser:appuser api ./api
 
 # Install Rust (required to build sudachipy and pyopenjtalk-plus)
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
