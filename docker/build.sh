@@ -6,7 +6,7 @@ VERSION=${1:-"latest"}
 
 # Build both CPU and GPU images using docker buildx bake
 echo "Building CPU and GPU images..."
-VERSION=$VERSION docker buildx bake --push
+VERSION=$VERSION docker buildx bake cpu --push
 
 echo "Build complete!"
 echo "Created images with version: $VERSION"
